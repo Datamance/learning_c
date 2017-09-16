@@ -19,6 +19,8 @@ void print_arguments(int argc, char *argv[]) {
 };
 
 void print_letters(char word[]) {
+    // When they are arguments, arrays decay to pointers. This makes sizeof()
+    // operate in a really shitty way.
     for (int i = 0; word[i] != '\0'; i++) {
         char ch = word[i];
         if (can_print_it(ch)) {
