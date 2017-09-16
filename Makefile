@@ -1,6 +1,6 @@
 CFLAGS=-Wall -g
 
-all: learn
+all: learn strings functional
 
 clean:
-	rm -f learn
+	rm -f learn strings functional
