@@ -5,11 +5,12 @@
 #include <string.h>
 
 
-// 1) Define MAX_DATA and MAX_ROWS
+// TODO: parameterize.
 #define MAX_DATA 512
 #define MAX_ROWS 100
 
 
+// TODO: Add more fields, make searchable.
 typedef struct _address {
     int id, set;
     char name[MAX_DATA];
@@ -28,7 +29,7 @@ typedef struct _connection {
 } Connection;
 
 
-void die(char *message) {
+void error(char *message) {
     if (errno) {
         perror(message);
     } else {
@@ -48,17 +49,17 @@ void Database_load(Connection *conn) {
                          conn->file);
 
     if (!rowCount) {
-        die("Failed to read Database!");
+        error("Failed to read Database!");
     }
 }
 
 
 Connection *Database_open(const char *filename, char mode) {
     Connection *conn = malloc(sizeof(Connection));
-    if (!conn) die("Unable to create connection.");
+    if (!conn) error("Unable to create connection.");
 
     conn->db = malloc(sizeof(Database));
-    if (!conn->db) die("Unable to create database.");
+    if (!conn->db) error("Unable to create database.");
 
     if (mode == 'c') {
         conn->file = fopen(filename, "w");
@@ -68,7 +69,7 @@ Connection *Database_open(const char *filename, char mode) {
         if (conn->file) Database_load(conn);
     }
 
-    if (!conn->file) die("Failed to open the file.");
+    if (!conn->file) error("Failed to open the file.");
 
     return conn;
 }
@@ -87,10 +88,10 @@ void Database_write(Connection *conn) {
     rewind(conn->file);
 
     int rowCount = fwrite(conn->db, sizeof(Database), 1, conn->file);
-    if (rowCount != 1) die("Failed to write.");
+    if (rowCount != 1) error("Failed to write.");
 
     rowCount = fflush(conn->file);
-    if (rowCount == -1) die("Failed to flush.");
+    if (rowCount == -1) error("Failed to flush.");
 }
 
 
@@ -107,7 +108,7 @@ void Database_set(
     Address *address = &conn->db->rows[id];
 
     if (address->set) {
-        die("This has already been set!");
+        error("This has already been set!");
     } else {
         address->set = 1;
     }
@@ -116,10 +117,10 @@ void Database_set(
     // src to dst, and always adds a null terminator following the bytes copied
     // to dst - also returns a size_t/int and not the char array pointer.
     size_t result = strlcpy(address->name, name, MAX_DATA);
-    if (!result) die("Failed to copy name");
+    if (!result) error("Failed to copy name");
 
     result = strlcpy(address->email, email, MAX_DATA);
-    if (!result) die("Failed to copy email");
+    if (!result) error("Failed to copy email");
 }
 
 
@@ -129,7 +130,7 @@ void Database_get(Connection *conn, int id) {
     if (address->set) {
         Address_print(address);
     } else {
-        die("This row has not been set!");
+        error("This row has not been set!");
     }
 }
 
@@ -154,7 +155,7 @@ void Database_list(Connection *conn) {
 int main(int argc, char *argv[])
 {
     if (argc < 3)
-        die("USAGE: ex17 <dbfile> <action> [action params]");
+        error("USAGE: database <dbfile> <action> [action params]");
 
     char *filename = argv[1];
     char action = argv[2][0];
@@ -162,7 +163,7 @@ int main(int argc, char *argv[])
     int id = 0;
 
     if (argc > 3) id = atoi(argv[3]);
-    if (id >= MAX_ROWS) die("There's not that many records.");
+    if (id >= MAX_ROWS) error("There's not that many records.");
 
     switch (action) {
         case 'c':
@@ -172,14 +173,14 @@ int main(int argc, char *argv[])
 
         case 'g':
             if (argc != 4)
-                die("Need an id to get");
+                error("Need an id to get");
 
             Database_get(conn, id);
             break;
 
         case 's':
             if (argc != 6)
-                die("Need id, name, email to set");
+                error("Need id, name, email to set");
 
             Database_set(conn, id, argv[4], argv[5]);
             Database_write(conn);
@@ -187,7 +188,7 @@ int main(int argc, char *argv[])
 
         case 'd':
             if (argc != 4)
-                die("Need id to delete");
+                error("Need id to delete");
 
             Database_delete(conn, id);
             Database_write(conn);
@@ -197,7 +198,7 @@ int main(int argc, char *argv[])
             Database_list(conn);
             break;
         default:
-            die("Invalid action: c=create, g=get, s=set, d=del, l=list");
+            error("Invalid action: c=create, g=get, s=set, d=del, l=list");
     }
 
     Database_close(conn);
