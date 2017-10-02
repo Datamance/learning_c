@@ -1,6 +1,6 @@
 CFLAGS=-Wall -g
 
-all: learn strings functional
+all: database
 
 clean:
-	rm -f learn strings functional
+	rm -f database

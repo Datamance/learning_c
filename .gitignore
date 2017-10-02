@@ -32,7 +32,6 @@
 *.dSYM/
 *.su
 
-# Other executable shit
-functional
-learn
-strings
+# Executables and project-specific
+database
+mydb
